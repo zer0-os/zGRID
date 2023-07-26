@@ -41,9 +41,6 @@ async fn main() {
             std::process::exit(1);
         }
     };
-    // CMD-LINE: Fetch address from cmd-line arguments
-    //if let Some(addr) = std::env::args().nth(1) {
-    //}
 
     // Node: Setup private_key and node_id
     let local_node_key = identity::Keypair::generate_ed25519();
@@ -66,19 +63,18 @@ async fn main() {
         })
         .boxed();
 
-    // Node: Setup (and subscribe) to unique  topic
-    let topic = IdentTopic::new("grid_topic");
-
     // Node: Configure and init gossipsub instance
     let mut gossipsub = init_gossipsub(local_node_key.clone());
+    
+    // Node: Setup (and subscribe) to unique  topic
+    let topic = IdentTopic::new("grid_topic");
+    gossipsub.subscribe(&topic);
 
     // Node: Create Node Swarm. A Swarm controls the state of the network and how it behaves.
     let mut swarm = {
-        let mut behaviour = init_gossipsub(local_node_key);
+        let mut behaviour = gossipsub;
         behaviour.subscribe(&topic);
-        SwarmBuilder::with_async_std_executor(transport, behaviour, local_node_id).build()
- 
-        //Arc::new(Mutex::new(SwarmBuilder::with_async_std_executor(transport, behaviour, local_node_id).build()))
+        SwarmBuilder::with_async_std_executor(transport, behaviour, local_node_id).build() 
     };
 
     // Node: Define MultiAddrs
@@ -113,6 +109,9 @@ async fn main() {
         match swarm.select_next_some().await {
             SwarmEvent::NewListenAddr { address, .. } => println!("Node:Event: Listening on: {address:?}"),
             SwarmEvent::Behaviour(event) => println!("{event:?}"),
+            SwarmEvent::ConnectionEstablished { peer_id, .. } => {
+                println!("Connection established: {}", peer_id);
+            },
             _ => {
                 // Handle all other events
                 println!("meow")
