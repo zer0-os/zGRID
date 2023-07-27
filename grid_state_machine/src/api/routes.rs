@@ -106,7 +106,8 @@ pub async fn handle_post_transaction(
 
 fn handle_repository_injection(
     arc_repository: Arc<Repository>
-) -> impl Filter<Extract = (Arc<Repository>,), Error = std::convert::Infallible> + Clone {
+) -> impl Filter<Extract = (
+        Arc<Repository>,), Error = std::convert::Infallible> + Clone {
     warp::any().map(move || Arc::clone(&arc_repository))
 }
 
@@ -131,4 +132,38 @@ fn bytes_to_json(bytes: Vec<u8>) -> Result<String, Error> {
 fn generate_random_index(min: i32, max: i32) -> i32 {
     let mut rng = rand::thread_rng();
     rng.gen_range(min..=max)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+    use std::error::Error;
+    use warp::http::StatusCode;
+    use warp::Rejection;
+    use crate::Repository;
+    use crate::db::{DatabaseState};
+    use crate::api::routes::routes;
+
+    fn init_repository() -> Arc<Repository> {
+        let db_path: String = "./test_db_routing".to_string();
+        let db_state: DatabaseState = <DatabaseState>::init(db_path);
+        let arc_repository = Arc::new(Repository::new(db_state));
+        arc_repository
+    }
+
+    #[test]
+    fn test_get_transaction() {
+        let arc_repository = init_repository();
+        
+        let route = routes(Arc::clone(&arc_repository));
+        
+        let request = warp::test::request()
+            .method("GET")
+            .path("/transaction/get/123");
+        
+        //ToDo: Implement rest of test
+            //let response = request.reply(&route);     
+            //println!("res {}", response);
+            //assert_eq!(response.status(), 200);
+    }
 }

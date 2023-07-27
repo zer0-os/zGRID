@@ -12,5 +12,5 @@ async fn main() {
     let db_path: String = "./grid_db".to_string();
     let db_state: DatabaseState = DatabaseState::init(db_path);
     let arc_repository = Arc::new(Repository::new(db_state));
-    start_server(arc_repository).await;
+    let _server_result = start_server(arc_repository).await;
 }
