@@ -112,7 +112,9 @@ fn handle_repository_injection(
 }
 
 
-fn handle_custom_rejection(error_msg: String, message: &str, status_code: StatusCode) -> CustomRejection {
+fn handle_custom_rejection(
+    error_msg: String, message: &str, status_code: StatusCode
+) -> CustomRejection {
     eprintln!("Error: {}", error_msg);
     CustomRejection {
         message: message.to_string(),
@@ -144,12 +146,14 @@ mod tests {
     use crate::db::{DatabaseState};
     use crate::api::routes::routes;
 
+
     fn init_repository() -> Arc<Repository> {
         let db_path: String = "./test_db_routing".to_string();
         let db_state: DatabaseState = <DatabaseState>::init(db_path);
         let arc_repository = Arc::new(Repository::new(db_state));
         arc_repository
     }
+
 
     #[test]
     fn test_get_transaction() {
@@ -161,7 +165,7 @@ mod tests {
             .method("GET")
             .path("/transaction/get/123");
         
-        //ToDo: Implement rest of test
+        //TODO: Implement rest of test
             //let response = request.reply(&route);     
             //println!("res {}", response);
             //assert_eq!(response.status(), 200);
