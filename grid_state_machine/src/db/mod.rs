@@ -11,8 +11,7 @@ pub struct DatabaseState {
 }
 
 impl DatabaseState {
-    pub fn init() -> Self {
-        
+    pub fn init() -> Self { 
         let db_path_string = "./grid_db";
         let path = Path::new(&db_path_string);
 
@@ -46,11 +45,31 @@ impl DatabaseState {
 }
 
 
-pub fn open_database(path: &Path) -> Result<GRID_DB<i32>, Box<dyn Error>> { 
+fn open_database(path: &Path) -> Result<GRID_DB<i32>, Box<dyn Error>> { 
     let mut options = Options::new();
     options.create_if_missing = true;
 
     let db = GRID_DB::open(path, options)?;
     
     Ok(db)
+}
+
+
+mod tests {
+    use crate::db::{DatabaseState};
+
+    #[test]
+    fn test_insert_and_read_key() {
+        let db_state = DatabaseState::init();
+ 
+        let key = 369;
+        let value = b"Hello, Meow!";
+        let value_bytes = value.to_vec();
+
+        db_state.insert_key(&key, value).unwrap();
+
+        let result = db_state.read_key(&key).unwrap();
+
+        assert_eq!(result, value_bytes);
+    }
 }
