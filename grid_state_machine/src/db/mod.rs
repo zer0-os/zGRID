@@ -11,8 +11,7 @@ pub struct DatabaseState {
 }
 
 impl DatabaseState {
-    pub fn init() -> Self { 
-        let db_path_string = "./grid_db";
+    pub fn init(db_path_string: String) -> Self { 
         let path = Path::new(&db_path_string);
 
         let mut options = Options::new();
@@ -54,13 +53,27 @@ fn open_database(path: &Path) -> Result<GRID_DB<i32>, Box<dyn Error>> {
     Ok(db)
 }
 
-
+#[cfg(test)]
 mod tests {
     use crate::db::{DatabaseState};
 
+    fn init_database(db_path: String) -> (DatabaseState, String) {
+        let db_state = DatabaseState::init(db_path.clone());
+        (db_state, db_path)
+    }
+
+    #[test]
+    fn test_open_database() {
+        let (db_state, db_path) = init_database("./test_db_open".to_string());
+        drop(db_state);
+        std::fs::remove_dir_all(db_path)
+            .expect("Failed to remove test db directory.");
+    }
+
     #[test]
     fn test_insert_and_read_key() {
-        let db_state = DatabaseState::init();
+        let (db_state, db_path) = init_database("./test_db_insert_and_read_key"
+            .to_string());
  
         let key = 369;
         let value = b"Hello, Meow!";
@@ -69,6 +82,10 @@ mod tests {
         db_state.insert_key(&key, value).unwrap();
 
         let result = db_state.read_key(&key).unwrap();
+
+        drop(db_state);
+        std::fs::remove_dir_all(db_path)
+            .expect("Failed to remove test db directory.");
 
         assert_eq!(result, value_bytes);
     }
